@@ -18,9 +18,4 @@ from django.urls import path, include
 from . import views
 
 urlpatterns = [
-    path('signin/', views.signin, name='signin'),
-    path('create/', views.create, name='create'),
-    path('link/', views.link, name='link'),
-    path('unlink/', views.unlink, name='unlink'),
-    #path('link/<str:token>', views.link, name='link'),
 ]

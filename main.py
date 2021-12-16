@@ -3,10 +3,10 @@ import spotipy
 
 CLIENTID = 'db44ed541fca41c59ff7059f084e3cd4'
 CLIENTSECRET = 'b49f57ee339a4c649a4d06c0d0f79abe'
-REDIRECT = 'http://www.google.com'
+REDIRECT = 'http://127.0.0.1:8000/account/link'
 
 
-scope = "user-library-read streaming user-read-playback-state user-modify-playback-state user-read-currently-playing"
+scope = "streaming user-read-playback-state user-modify-playback-state user-read-currently-playing"
 
 sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
     client_id=CLIENTID, client_secret=CLIENTSECRET, redirect_uri=REDIRECT, scope=scope))
@@ -14,7 +14,7 @@ sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
 print(sp.current_playback())
 
 print('-'*100)
-print(sp.auth_manager.get_access_token())
+print(sp.auth_manager.get_access_token(as_dict=True))
 
 while True:
     userin = input('pause, play, skip\n')

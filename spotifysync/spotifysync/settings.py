@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-8^05e^l&+^e&d5e*!t3ed0%@@lq!$jk3#1dc7lpt)=8-=fickh
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['192.168.0.101', '192.168.0.200']
 
 
 # Application definition
@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'account',
     'room',
+    'home.apps.HomeConfig',
 ]
 
 MIDDLEWARE = [
@@ -123,3 +124,10 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGIN_URL = '/account/signin'
+
+SCOPE = 'streaming user-read-playback-state user-modify-playback-state user-read-currently-playing'
+CLIENTID = 'db44ed541fca41c59ff7059f084e3cd4'
+CLIENTSECRET = 'b49f57ee339a4c649a4d06c0d0f79abe'
+REDIRECTURI = 'http://127.0.0.1:8000/account/link'
