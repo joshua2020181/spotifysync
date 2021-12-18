@@ -11,6 +11,7 @@ from django.contrib.auth.decorators import login_required
 
 from spotipy.cache_handler import CacheFileHandler
 from spotipy.oauth2 import SpotifyOAuth
+from spotipy import Spotify
 from spotifysync.settings import SCOPE, CLIENTID, CLIENTSECRET, REDIRECTURI
 
 
@@ -57,8 +58,11 @@ def link(request):
         return redirect('/home/')
 
     if request.GET.get('code'):  # redirected from spotify
-        auth.get_access_token(request.GET['code'])
-        spuser.saveCache(auth.get_access_token(as_dict=True))
+        auth.get_access_token(code=request.GET['code'])
+        print(auth.validate_token(request.GET['code']))
+        sp = Spotify(auth_manager=auth)
+        spuser.saveCache(auth.get_cached_token())
+        spuser.save()
         return redirect('/home/')
 
     if not auth.validate_token(spuser.getCache().get_cached_token()):  # need to login
@@ -66,7 +70,7 @@ def link(request):
     return render(request, "link.html")
 
 
-@login_required
+@ login_required
 def unlink(request):
     spuser = SpotifyUser.objects.get(user=request.user)
     spuser.deleteCache()

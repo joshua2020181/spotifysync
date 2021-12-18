@@ -1,7 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.deletion import SET_NULL
 from spotipy.cache_handler import MemoryCacheHandler
 from spotipy.oauth2 import SpotifyOAuth
+from spotipy import Spotify
 from spotifysync.settings import SCOPE, CLIENTID, CLIENTSECRET, REDIRECTURI
 
 
@@ -20,6 +22,8 @@ class SpotifyUser(models.Model):
     refresh_token = models.CharField(blank=True, max_length=255)
     scope = models.CharField(blank=True, max_length=255)
     expires_at = models.IntegerField(null=True)
+
+    room = models.ForeignKey('room.Room', on_delete=SET_NULL, null=True)
 
     def getCachePath(self):
         return f'/home/caches/{self.user.username}'
@@ -56,6 +60,9 @@ class SpotifyUser(models.Model):
     def getOAuth(self):
         return SpotifyOAuth(scope=SCOPE, client_id=CLIENTID, client_secret=CLIENTSECRET, redirect_uri=REDIRECTURI,
                             cache_handler=self.getCache(), show_dialog=True)
+
+    def getSpotify(self):
+        return Spotify(auth_manager=self.getOAuth())
 
     objects = SpotifyUserManager()
 
