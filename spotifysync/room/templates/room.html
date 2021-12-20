@@ -1,7 +1,0 @@
-{{room.id}}
-
-<form action="/room/{{room.id}}/" method="post">
-    {% csrf_token %}
-    <input type="submit" name="pause" value="Pause" />
-    <input type="submit" name="play" value="Play" />
-</form>

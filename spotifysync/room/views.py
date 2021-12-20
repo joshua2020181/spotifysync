@@ -10,10 +10,27 @@ from home.models import SpotifyUser
 @login_required
 def room(request):
     # if room alr exists
-    if len(Room.objects.filter(host=request.user)) > 0:
+    context = {'user': request.user}
+    if len(Room.objects.filter(host=request.user)) == 0:
         room = Room.objects.create(host=request.user)
-        print(room.id)
-    return render(request, 'homeroom.html', {'user': request.user, 'room': room})
+        context['room'] = room
+    else:
+        context['room'] = Room.objects.get(host=request.user)
+    return render(request, 'room/homeroom.html', context=context)
+
+
+@login_required
+def new(request):
+    context = {'user': request.user}
+    if len(Room.objects.filter(host=request.user)) == 0:
+        room = Room.objects.create(host=request.user)
+        context['room'] = room
+    else:
+        room = Room.objects.get(host=request.user)
+        room.delete()
+        room = Room.objects.create(host=request.user)
+        context['room'] = room
+    return render(request, 'room/new.html', context=context)
 
 
 @login_required
@@ -45,4 +62,4 @@ def roomid(request, roomid):
                 p.getSpotify().start_playback()
             except SpotifyException:  # user already playing
                 pass
-    return render(request, 'room.html', {'room': room})
+    return render(request, 'room/room.html', {'room': room})

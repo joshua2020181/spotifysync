@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Room
+{% endblock %}
+
+{% block body%}
+<div class="px-4 py-5 my-5">
+    <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+        <button type="button" class="btn btn-primary btn-lg px-4 gap-3" onclick="window.location.href='/room/new'">Create New Room</button>
+        <button type="button" class="btn btn-outline-secondary btn-lg px-4" data-bs-toggle="modal" data-bs-target="#joinModal">
+            Join Room
+        </button>
+    </div>
+</div>
+
+
+
+  
+  <!-- Modal -->
+<div class="modal fade" id="joinModal" tabindex="-1" role="dialog" aria-labelledby="joinModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="joinModalLongTitle">Join Room</h5>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form action="/room/" method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Room ID:</label>
+                        <input class="form-control" name="uname" type="text" maxlength="50"/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password:</label>
+                        <input class="form-control" name="password" type="password" maxlength="50"/>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Join</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

@@ -25,7 +25,7 @@ def signin(request):
             return redirect('/home')
         else:
             return render(request, "signin.html", {"errormsg": "Incorrect username or password"})
-    return render(request, "signin.html")
+    return render(request, "account/signin.html")
 
 
 def create(request):
@@ -33,7 +33,7 @@ def create(request):
         username = request.POST['uname']
         password = request.POST['password']
         if password != request.POST['confirm']:
-            return render(request, "create.html", {"errormsg": "Passwords don't match"})
+            return render(request, "account/create.html", {"errormsg": "Passwords don't match"})
         # check if username is duplicate
 
         User.objects.create_user(username=username, password=password)
@@ -46,7 +46,7 @@ def create(request):
                 spusr.save()
 
             return redirect('/account/link')
-    return render(request, "create.html")
+    return render(request, "account/create.html")
 
 
 @login_required
@@ -67,11 +67,11 @@ def link(request):
 
     if not auth.validate_token(spuser.getCache().get_cached_token()):  # need to login
         return render(request, "link.html", context={'link_url': auth.get_authorize_url()})
-    return render(request, "link.html")
+    return render(request, "account/link.html")
 
 
 @ login_required
 def unlink(request):
     spuser = SpotifyUser.objects.get(user=request.user)
     spuser.deleteCache()
-    return render(request, "unlink.html")
+    return render(request, "account/unlink.html")

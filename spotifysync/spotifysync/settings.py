@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'account',
     'room',
-    'home.apps.HomeConfig',
+    'home',
 ]
 
 MIDDLEWARE = [
@@ -55,10 +55,15 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'spotifysync.urls'
 
+TEMPLATE_LOADERS = (
+    'django.template.loaders.filesystem.Loader',
+    'django.template.loaders.app_directories.Loader',
+)
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -70,6 +75,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 WSGI_APPLICATION = 'spotifysync.wsgi.application'
 
