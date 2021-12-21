@@ -24,12 +24,14 @@ def signin(request):
             login(request, user)
             return redirect('/home')
         else:
-            return render(request, "signin.html", {"errormsg": "Incorrect username or password"})
+            return render(request, "account/signin.html", {"errormsg": "Incorrect username or password"})
     return render(request, "account/signin.html")
 
 
 def create(request):
     if request.POST:
+        if not (request.POST['uname'] and request.POST['password']):
+            return render(request, 'account/create.html', {"errormsg": "Username or Password missing"})
         username = request.POST['uname']
         password = request.POST['password']
         if password != request.POST['confirm']:
@@ -66,7 +68,7 @@ def link(request):
         return redirect('/home/')
 
     if not auth.validate_token(spuser.getCache().get_cached_token()):  # need to login
-        return render(request, "link.html", context={'link_url': auth.get_authorize_url()})
+        return render(request, "account/link.html", context={'link_url': auth.get_authorize_url()})
     return render(request, "account/link.html")
 
 

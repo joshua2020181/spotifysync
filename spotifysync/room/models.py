@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.deletion import SET_NULL
 from django.db.models.fields import CharField, IntegerField
-from django.db.models.fields.related import OneToOneField
+from django.db.models.fields.related import ManyToManyField, OneToOneField
 from django.utils.crypto import get_random_string
 from time import time
 
@@ -13,6 +13,8 @@ class RoomMangaer(models.Manager):
     def create(self, host=None, **kwargs):
         rm = Room(id=get_random_string(
             length=16), lastActive=int(time()), host=host)
+        rm.save()
+        rm.allowed_users.add(host)
         rm.save()
         return rm
 
@@ -28,6 +30,7 @@ class Room(models.Model):
     lastActive = IntegerField()
     password = CharField(max_length=50, blank=True)
     host = OneToOneField(User, null=True, on_delete=SET_NULL)
+    allowed_users = ManyToManyField(User, related_name='allowed_users')
 
     objects = RoomMangaer()
 

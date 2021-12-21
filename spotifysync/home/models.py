@@ -64,6 +64,10 @@ class SpotifyUser(models.Model):
     def getSpotify(self):
         return Spotify(auth_manager=self.getOAuth())
 
+    def refresh(self):
+        self.saveCaache(
+            self.getOAuth().refresh_access_token(self.refresh_token))
+
     objects = SpotifyUserManager()
 
 

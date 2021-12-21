@@ -8,13 +8,11 @@ Room
 <div class="px-4 py-5 my-5">
     <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
         <button type="button" class="btn btn-primary btn-lg px-4 gap-3" onclick="window.location.href='/room/new'">Create New Room</button>
-        <button type="button" class="btn btn-outline-secondary btn-lg px-4" data-bs-toggle="modal" data-bs-target="#joinModal">
+        <button type="button" id="joinbtn" class="btn btn-outline-secondary btn-lg px-4" data-bs-toggle="modal" data-bs-target="#joinModal">
             Join Room
         </button>
     </div>
 </div>
-
-
 
   
   <!-- Modal -->
@@ -28,11 +26,15 @@ Room
                 </button>
             </div>
             <div class="modal-body">
-                <form action="/room/" method="post">
+                <form action="/room/" method="post" id="joinForm">
                     {% csrf_token %}
+                    <input type="hidden" name="join" value="join">
+                    {%if errormsg %}
+                        <div class="alert alert-danger mb-3">{{errormsg}}</div>
+                    {% endif %}
                     <div class="mb-3">
                         <label class="form-label">Room ID:</label>
-                        <input class="form-control" name="uname" type="text" maxlength="50"/>
+                        <input class="form-control" id="roomid" name="roomid" value="{{request.GET.room}}" type="text" maxlength="50"/>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Password:</label>
@@ -42,11 +44,16 @@ Room
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary">Join</button>
+                <button type="button" onclick="document.getElementById('joinForm').submit();" class="btn btn-primary">Join</button>
             </div>
         </div>
     </div>
 </div>
 
+{% if request.GET.room or errormsg %}
+<script>
+    window.onload = function(){document.getElementById('joinbtn').click();}
+</script>
+{% endif %}
 
 {% endblock %}

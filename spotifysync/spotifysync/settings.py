@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-8^05e^l&+^e&d5e*!t3ed0%@@lq!$jk3#1dc7lpt)=8-=fickh
 DEBUG = True
 
 ALLOWED_HOSTS = ['192.168.0.101', '192.168.0.200',
-                 'cheng.ddns.net', '127.0.0.1']
+                 'cheng.ddns.net', '127.0.0.1', '192.168.1.13']
 
 
 # Application definition
