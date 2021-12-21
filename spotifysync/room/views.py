@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect
 from spotipy.exceptions import SpotifyException
 from .models import Room
 from home.models import SpotifyUser
+from time import time
 # Create your views here.
 
 
@@ -11,6 +12,7 @@ from home.models import SpotifyUser
 def room(request):
     # if room alr exists
     context = {'user': request.user}
+    SpotifyUser.objects.get(user=request.user).refreshIfExpired()
     if request.POST and 'join' in request.POST:
         rmfilter = Room.objects.filter(id=request.POST['roomid'])
         if rmfilter and (rmfilter[0].allowed_users.filter(id=request.user.id) or rmfilter[0].password == request.POST['password']):
@@ -38,11 +40,12 @@ def new(request):
 @login_required
 def roomid(request, roomid):
     spuser = SpotifyUser.objects.get(user=request.user)
+    spuser.refreshIfExpired()
     room = Room.objects.filter(id=roomid)
     if not len(room) == 1:
         return HttpResponseNotFound('Room not found, please double check the URL')
     room = room[0]
-    room.activate()
+    room.activate()  # refreshes lastActive field
     context = {'room': room}
     if spuser.room != room.id:
         if room.allowed_users.filter(id=request.user.id):

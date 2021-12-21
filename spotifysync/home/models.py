@@ -5,6 +5,7 @@ from spotipy.cache_handler import MemoryCacheHandler
 from spotipy.oauth2 import SpotifyOAuth
 from spotipy import Spotify
 from spotifysync.settings import SCOPE, CLIENTID, CLIENTSECRET, REDIRECTURI
+from time import time
 
 
 class SpotifyUserManager(models.Manager):
@@ -65,8 +66,12 @@ class SpotifyUser(models.Model):
         return Spotify(auth_manager=self.getOAuth())
 
     def refresh(self):
-        self.saveCaache(
+        self.saveCache(
             self.getOAuth().refresh_access_token(self.refresh_token))
+
+    def refreshIfExpired(self):
+        if self.expires_at < time():
+            self.refresh()
 
     objects = SpotifyUserManager()
 
