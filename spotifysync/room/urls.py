@@ -21,4 +21,5 @@ urlpatterns = [
     path('', views.room, name='room'),
     path('new/', views.new, name='newroom'),
     path('<str:roomid>/', views.roomid, name='roomid'),
+    path('<str:roomid>/add/<str:page>', views.add, name='add'),
 ]

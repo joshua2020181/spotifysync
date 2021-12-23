@@ -63,6 +63,7 @@ class SpotifyUser(models.Model):
                             cache_handler=self.getCache(), show_dialog=True)
 
     def getSpotify(self):
+        self.refreshIfExpired()
         return Spotify(auth_manager=self.getOAuth())
 
     def refresh(self):

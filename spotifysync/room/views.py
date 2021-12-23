@@ -5,6 +5,7 @@ from spotipy.exceptions import SpotifyException
 from .models import Room
 from home.models import SpotifyUser
 from time import time
+from room.utils import SpotifyItem
 # Create your views here.
 
 
@@ -38,9 +39,73 @@ def new(request):
 
 
 @login_required
+def add(request, roomid, page):
+    context = {'user': request.user,
+               'results': {
+                   'tracks': [],
+                   'albums': [],
+                   'playlists': [],
+               }}
+
+    # check if user is allowed to be here --------------
+
+    room = Room.objects.filter(id=roomid)
+    if not len(room) == 1:
+        return HttpResponseNotFound('Room not found, please double check the URL')
+    room = room[0]
+    room.activate()  # refreshes lastActive field
+    context['room'] = room
+    spuser = SpotifyUser.objects.get(user=request.user)
+    print(request.POST)
+    if request.POST and 'search' in request.POST:
+        res = spuser.getSpotify().search(
+            request.POST['search'], type='track,album,playlist')
+        context['query'] = request.POST['search']
+
+        results = SpotifyItem.fromQuery(res)
+        results = SpotifyItem.nest(results, spuser.getSpotify())
+
+        for r in results:
+            context['results'][r.type + 's'].append(r.as_dict())
+        # for re in res['tracks']['items']:
+        #     r = {'title': '',
+        #          'img': '',
+        #          'duration': '',
+        #          'artists': ''}
+        #     r['title'] = re['name']
+        #     r['img'] = re['album']['images'][0]['url']
+        #     r['duration'] = f"{int((re['duration_ms']/1000)/60)}:{int((re['duration_ms']/1000)%60)}"
+        #     r['artists'] = ', '.join(x['name'] for x in re['artists'])
+        #     context['results']['songs'].append(r)
+
+        # for re in res['albums']['items']:
+        #     r = {'title': '',
+        #          'img': '',
+        #          'duration': '',
+        #          'artists': ''}
+        #     r['title'] = re['name']
+        #     r['img'] = re['images'][0]['url']
+        #     r['duration'] = re['release_date'].split('-')[0]
+        #     r['artists'] = ', '.join(x['name'] for x in re['artists'])
+        #     context['results']['albums'].append(r)
+
+        # for re in res['playlists']['items']:
+        #     r = {'title': '',
+        #          'img': '',
+        #          'duration': '',
+        #          'artists': ''}
+        #     r['title'] = re['name']
+        #     r['img'] = re['images'][0]['url']
+        #     r['duration'] = re['description']
+        #     r['artists'] = re['owner']['display_name']
+        #     context['results']['playlists'].append(r)
+
+    return render(request, 'room/add.html', context=context)
+
+
+@login_required
 def roomid(request, roomid):
     spuser = SpotifyUser.objects.get(user=request.user)
-    spuser.refreshIfExpired()
     room = Room.objects.filter(id=roomid)
     if not len(room) == 1:
         return HttpResponseNotFound('Room not found, please double check the URL')
