@@ -1,52 +1,115 @@
-{% extends 'base.html' %}
+{% extends 'room/base.html' %}
 
 {% block title %} {{user.username}}'s Room
 {% endblock %}
 
 {% block body %}
-{{room.id}}
-<p>leaving button</p>
-<span>Host Playing: </span>
-<p id='currentPlaying'>{{current_playback.item.name}}</p>
+<style>
+    div {
+        //outline: 1px solid black;
+    }
+    {% comment %} body {
+        background-color: black;
+    }
+
+    .btn {
+        color: white;
+        background-color: #1db954;
+        border-color: transparent;
+    } {% endcomment %}
+</style>
 <form action="/room/{{room.id}}/" method="post">
     {% csrf_token %}
-    <button type="submit" class="btn btn-outline-secondary" name="sync">Sync everyone with me</button>
-    <div class="btn-group">
-        <button type="submit" class="btn btn-outline-secondary" name="pause">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pause-fill" viewBox="0 0 16 16">
-                <path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5zm5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5z"/>
-            </svg>
-            <span class="visually-hidden">Pause</span>
-        </button>
-        <button type="submit" class="btn btn-outline-secondary" name="play">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-play-fill" viewBox="0 0 16 16">
-                <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/>
-            </svg>
-          <span class="visually-hidden">Play</span>
-        </button>
+    <div class="container">
+        <div class="row">
+            <div class="w-50 mx-auto" style="outline: 1px solid black;">
+                <div class="row">
+                    <div class="col-md-auto">
+                        <img src="{{current_playback.item.album.images.1.url}}" width="200" height="200">
+                    </div>
+                    <div class="col d-flex flex-column">
+                        <div class="p-2 flex-fill">
+                            {{current_playback.item.name}}
+                        </div>
+                        <div class="p-2 flex-fill">
+                            {% for artist in current_playback.item.artists%}
+                                {{artist.name}}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div class="p-2 flex-fill">
+                            <div class="col-6 mx-auto text-center">
+                                <div class="btn-group">
+                                    <button type="submit" class="btn btn-outline-secondary" name="rewind">
+                                        <i class="bi-skip-backward-fill"></i>
+                                        <span class="visually-hidden">Rewind</span>
+                                    </button>
+                                    <button type="submit" class="btn btn-outline-secondary" name="pause">
+                                        <i class="bi-pause-fill"></i>
+                                        <span class="visually-hidden">Pause</span>
+                                    </button>
+                                    <button type="submit" class="btn btn-outline-secondary" name="play">
+                                        <i class="bi-play-fill"></i>
+                                        <span class="visually-hidden">Play</span>
+                                    </button>
+                                    <button type="submit" class="btn btn-outline-secondary" name="skip">
+                                        <i class="bi-skip-forward-fill"></i>
+                                        <span class="visually-hidden">Skip</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="progress my-1">
+                    <div class="progress-bar" id="progress" role="progressbar" style="width: calc({{current_playback.progress_ms}}/{{current_playback.item.duration_ms}} * 100%);" aria-valuenow="25" aria-valuemin="0"
+                        aria-valuemax="100"></div>
+                </div>
+            </div>
+        </div>
     </div>
+    
+    <button type="submit" class="btn btn-outline-secondary" name="sync">Sync everyone with me</button>
+    
     <button type="submit" class="btn btn-outline-secondary" name="leave">Leave Room</button>
 </form>
 
 
 <script>
-    function httpGet()
-    {
+    window.onload = initProgress;
+    var intervalId = null;
+    function initProgress() {
+        document.getElementById("progress").style="width: " + {{current_playback.progress_ms}}/{{current_playback.item.duration_ms}} * 100 + "%";
+        if ("{{current_playback.is_playing}}" == "True") {
+            updateProgress();
+        }
+    }
+    function tick() {
+        var bar = document.getElementById("progress");
+        if (parseFloat(bar.style.width) <= 100.0) {
+            bar.style.width = (parseFloat(bar.style.width) + 0.1) + "%";
+        } else {
+            clearInterval(intervalId);
+            location.reload();
+        }
+    }
+    function updateProgress() {
+        intervalId = setInterval(tick, {{current_playback.item.duration_ms}}/1000);
+    }
+    function httpGet() {
         var xmlHttp = new XMLHttpRequest();
-        xmlHttp.open( "GET", "https://api.spotify.com/v1/me/player/currently-playing", false ); // false for synchronous request
+        xmlHttp.open("GET", "https://api.spotify.com/v1/me/player/currently-playing", false); // false for synchronous request
         xmlHttp.setRequestHeader("Accept", "application/json")
         xmlHttp.setRequestHeader("Content-Type", "application/json")
         xmlHttp.setRequestHeader("Authorization", "Bearer BQBdX9jHyMPWkYYQB9in3xC0JPbNf6MEjp6j9n5-lCPd-MP0T83ALLqVDTr7CogaBnRdN8eWDk0hnEVkKEbaPCT7_tT-fOUKh2DSEOBkDoUxvgDEJaBzbjJvh71ZwyTnK1aenXjkYHloM5vHuSP5EI7zyfvxWHesupZYHBFx_OBj")
-        xmlHttp.send( null );
+        xmlHttp.send(null);
         return xmlHttp.response;
     }
     function setCurrent(txt) {
-        document.getElementById('currentPlaying').innerText = txt['item']['name'] + " @ " + txt['progress_ms']/1000 + 'seconds';
+        document.getElementById('currentPlaying').innerText = txt['item']['name'] + " @ " + txt['progress_ms'] / 1000 + 'seconds';
     }
-    function httpGetAsync(callback)
-    {
+    function httpGetAsync(callback) {
         var xmlHttp = new XMLHttpRequest();
-        xmlHttp.onreadystatechange = function() { 
+        xmlHttp.onreadystatechange = function () {
             if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
                 callback(JSON.parse(this.responseText));
         }
@@ -54,7 +117,7 @@
         xmlHttp.setRequestHeader("Accept", "application/json")
         xmlHttp.setRequestHeader("Content-Type", "application/json")
         xmlHttp.setRequestHeader("Authorization", "Bearer BQBdX9jHyMPWkYYQB9in3xC0JPbNf6MEjp6j9n5-lCPd-MP0T83ALLqVDTr7CogaBnRdN8eWDk0hnEVkKEbaPCT7_tT-fOUKh2DSEOBkDoUxvgDEJaBzbjJvh71ZwyTnK1aenXjkYHloM5vHuSP5EI7zyfvxWHesupZYHBFx_OBj")
-        
+
         xmlHttp.send(null);
     }
     function doagain() {

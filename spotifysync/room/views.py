@@ -57,8 +57,6 @@ def roomid(request, roomid):
             response['Location'] += f'?room={room.id}'
             return response
         # check if password is incorrect
-    context['current_playback'] = SpotifyUser.objects.get(
-        user=room.host).getSpotify().current_playback()
     participants = SpotifyUser.objects.filter(
         room=room.id)  # note: host is also in participants
 
@@ -68,6 +66,10 @@ def roomid(request, roomid):
     if request.POST and 'sync' in request.POST:
         context['current_playback'] = SpotifyUser.objects.get(
             user=request.user).getSpotify().current_playback()
+        if not context['current_playback']:
+            context['errormsg'] = "Please start a playback session first (press play on Spotify)"
+            print('no playback sess')
+            # handle no playback
         for p in participants:
             if p == room.host:  # skips initiator so their context isn't messed up
                 continue
@@ -89,5 +91,20 @@ def roomid(request, roomid):
                 p.getSpotify().start_playback()
             except SpotifyException:  # user already playing
                 pass
+    if request.POST and 'rewind' in request.POST:
+        for p in participants:
+            try:
+                p.getSpotify().previous_track()
+            except SpotifyException:  # user already playing
+                pass
+    if request.POST and 'skip' in request.POST:
+        for p in participants:
+            try:
+                p.getSpotify().next_track()
+            except SpotifyException:  # user already playing
+                pass
+
+    context['current_playback'] = SpotifyUser.objects.get(
+        user=room.host).getSpotify().current_playback()
 
     return render(request, 'room/room.html', context=context)
