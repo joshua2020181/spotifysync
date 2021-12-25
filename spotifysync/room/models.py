@@ -9,7 +9,7 @@ from time import time
 # Create your models here.
 
 
-class RoomMangaer(models.Manager):
+class RoomManger(models.Manager):
     def create(self, host=None, **kwargs):
         rm = Room(id=get_random_string(
             length=16), lastActive=int(time()), host=host)
@@ -32,7 +32,60 @@ class Room(models.Model):
     host = OneToOneField(User, null=True, on_delete=SET_NULL)
     allowed_users = ManyToManyField(User, related_name='allowed_users')
 
-    objects = RoomMangaer()
+    def clearQueue(self):
+        self.queue = []
+        self.save()
+
+    def addItem(self, item):
+        """ adds item (dictified utils.SpotifyItem) to queue, 
+        adds all nested for playlists and albums and returns list of titles that were added"""
+        ls = []
+        if item['type'] == 'playlist' or item['type'] == 'album':
+            for i in item['nested']:
+                self.queue.append(i)
+                ls.append(i['name'])
+        else:
+            self.queue.append(item)
+            ls.append(item['name'])
+        self.save()
+        return ', '.join(ls)
+
+    def removeItem(self, item=None, id=None):
+        """ removes the item either by the whole item or by id or does nothing if doesn't exist """
+        if item:
+            id = item.get('id', None)
+
+        for i, x in enumerate(self.queue):
+            if x['id'] == id:
+                self.queue.pop(i)
+                return
+
+    # a lit of dictified SpotifyItems
+    queue = models.JSONField(default=list)
+
+    def defaultSearch():
+        return {'timestamp': 0,
+                'seachTerm': '',
+                'results': []}
+
+    def addSearch(self, searchTerm, results):
+        self.lastSearch = {'timestamp': int(time()),
+                           'seachTerm': searchTerm,
+                           'results': results}
+        self.save()
+
+    def getItemIfFresh(self, id):
+        """ gets the item from lastSearch if last search within 10 mins """
+        if self.lastSearch['timestamp'] < int(time() - 600):
+            self.lastSearch = {'timestamp': 0,
+                               'seachTerm': '',
+                               'results': []}
+            return None
+        return next((item for item in self.lastSearch['results'] if item['id'] == id), None)
+
+    lastSearch = models.JSONField(default=defaultSearch)
+
+    objects = RoomManger()
 
     def activate(self):  # update lastActive
         self.lastActive = int(time())

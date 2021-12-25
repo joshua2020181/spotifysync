@@ -57,12 +57,19 @@ class SpotifyItem():
 
     def as_dict(self):
         dict = self.__dict__
-        dict['nested'] = self.nested
+        ls = []  # doing dict['nested'] = [] here deletes self.nested
+        for x in self.nested:
+            try:
+                ls.append(x.as_dict())
+            except AttributeError:
+                # already a dict
+                ls.append(x)
+        dict['nested'] = ls
         dict['favorite'] = self.favorite
         return dict
 
     def __str__(self):
-        return self.as_dict().__str__()
+        return f'SpotifyItem: {self.as_dict().__str__()}'
 
     def __repr__(self):
         return self.__str__()

@@ -3,6 +3,9 @@
 {% block header %}
 <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
     <p style="height: 32px;">Logo Here</p>
+    {% block navbar %}
+    {% endblock %}
+
     <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
         
     </ul>
@@ -19,4 +22,13 @@
     </div>
   </div>
 
+{% endblock %}
+
+{% block styles %}
+<style>
+  .item-label {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+</style>
 {% endblock %}

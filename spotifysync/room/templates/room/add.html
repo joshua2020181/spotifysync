@@ -1,11 +1,60 @@
 {% extends 'room/base.html' %}
 
+{% block navbar %}
+<button class="btn" onclick="window.location.href = '/room/{{room.id}}'">Room</button>
+<button class="btn" onclick="window.location.href = '/room/{{room.id}}/add/search'">Add</button>
+{% endblock %}
+
 {% block body %}
 <style>
   div {
     //outline: 1px solid black;
   }
+
+  .item-label {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
 </style>
+
+<div id="success-alert" class="alert alert-success alert-dismissible fade show position-fixed top-0 translate-middle-x start-50 transl" role="alert" style="z-index: 9999">
+  Successfully added SONG NAME to the queue.
+  <button type="button" id="alert-close" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+
+
+<script>
+  setTimeout(function(){document.getElementById("alert-close").click()}, 2000);
+</script>
+
+{% csrf_token %}
+
+<script>
+  function add(id) {
+    httpGetAsync(callback, id);
+  }
+
+  function callback(response) {
+    // activate success/danger alert
+    console.log(response);
+  }
+
+  function httpGetAsync(callback, id) {
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function () {
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+            callback(xmlHttp.responseText);
+    }
+    xmlHttp.open("POST", window.location.href, true); // true for asynchronous 
+    xmlHttp.setRequestHeader("Accept", "application/json")
+    xmlHttp.setRequestHeader("Content-Type", 'application/x-www-form-urlencoded')
+    xmlHttp.setRequestHeader("X-CSRFToken", document.querySelector('[name=csrfmiddlewaretoken]').value);
+    var dict = {"add_id": id};
+    xmlHttp.send("add_id=" + id);
+  }
+</script>
+
 <div class="container w-50 mx-auto">
   <div class="row">
     <div class="nav justify-content-center">
@@ -39,12 +88,12 @@
         <ul class="list-unstyled p-1 overflow-auto" style="max-height: 300px;">
           {% for r in results.tracks %}
           <li><div class="d-flex flex-row rounded-3" style="outline: 1px solid black;">
-            <button type="button" class="btn" onclick="add('r.id')"><i class="bi-plus-lg"></i></button>
+            <button type="button" class="btn" onclick="add('{{r.id}}')"><i class="bi-plus-lg"></i></button>
             <div class="d-flex align-items-center"><img src="{{r.img}}" height=64 width=64></div>
-            <div class="flex-column p-2 flex-fill">
-              <div>{{ r.name }}</div>
-              <div>{{ r.artists }}</div>
-              <div>{{ r.desc }}</div>
+            <div class="flex-column p-2 flex-fill overflow-hidden">
+              <div class="overflow-hidden item-label">{{  r.name }}</div>
+              <div class="overflow-hidden item-label">{{  r.artists }}</div>
+              <div class="overflow-hidden item-label">{{  r.desc }}</div>
             </div>
             <button type="button" class="btn"><i class="bi-heart" id="heart-icon"></i></button>
           </div></li>
@@ -66,12 +115,12 @@
             <div class="accordion-header p-0">
               <div class="d-flex flex-row rounded-3 p-1" style="outline: 1px solid black;">
                 <div class="accordion-button collapsed p-0" type="button" data-bs-toggle="collapse" data-bs-target="#albumCollapse{{forloop.counter0}}">
-                  <button type="button" class="btn" onclick="add('r.id')"><i class="bi-plus-lg"></i></button>
+                  <button type="button" class="btn" onclick="add('{{r.id}}')"><i class="bi-plus-lg"></i></button>
                   <div class="d-flex align-items-center"><img src="{{r.img}}" height=64 width=64></div>
-                  <div class="flex-column p-2 flex-fill">
-                    <div>{{ r.name }}</div>
-                    <div>{{ r.artists }}</div>
-                    <div>{{ r.desc }}</div>
+                  <div class="flex-column p-2 flex-fill overflow-hidden">
+                    <div class="overflow-hidden item-label">{{  r.name }}</div>
+                    <div class="overflow-hidden item-label">{{  r.artists }}</div>
+                    <div class="overflow-hidden item-label">{{  r.desc }}</div>
                   </div>
                   <button type="button" class="btn"><i class="bi-heart"></i></button>
                 </div>
@@ -81,12 +130,12 @@
                   <ul class="list-unstyled p-1 overflow-auto" style="max-height: 300px;">
                     {% for r1 in r.nested %}
                     <li><div class="d-flex flex-row rounded-3" style="outline: 1px solid black;">
-                      <button type="button" class="btn" onclick="add('r1.id')"><i class="bi-plus-lg"></i></button>
+                      <button type="button" class="btn" onclick="add('{{r1.id}}')"><i class="bi-plus-lg"></i></button>
                       <div class="d-flex align-items-center"><img src="{{r1.img}}" height=64 width=64></div>
-                      <div class="flex-column p-2 flex-fill">
-                        <div>{{ r1.name }}</div>
-                        <div>{{ r1.artists }}</div>
-                        <div>{{ r1.desc }}</div>
+                      <div class="flex-column p-2 flex-fill overflow-hidden">
+                        <div class="overflow-hidden item-label">{{  r1.name }}</div>
+                        <div class="overflow-hidden item-label">{{  r1.artists }}</div>
+                        <div class="overflow-hidden item-label">{{  r1.desc }}</div>
                       </div>
                       <button type="button" class="btn"><i class="bi-heart" id="heart-icon"></i></button>
                     </div></li>
@@ -114,12 +163,12 @@
             <div class="accordion-header p-0">
               <div class="d-flex flex-row rounded-3 p-1" style="outline: 1px solid black;">
                 <div class="accordion-button collapsed p-0" type="button" data-bs-toggle="collapse" data-bs-target="#playlistCollapse{{forloop.counter0}}">
-                  <button type="button" class="btn" onclick="add('r.id')"><i class="bi-plus-lg"></i></button>
+                  <button type="button" class="btn" onclick="add('{{r.id}}')"><i class="bi-plus-lg"></i></button>
                   <div class="d-flex align-items-center"><img src="{{r.img}}" height=64 width=64></div>
-                  <div class="flex-column p-2 flex-fill">
-                    <div>{{ r.name }}</div>
-                    <div>{{ r.artists }}</div>
-                    <div>{{ r.desc }}</div>
+                  <div class="flex-column p-2 flex-fill overflow-hidden">
+                    <div class="overflow-hidden item-label">{{  r.name }}</div>
+                    <div class="overflow-hidden item-label">{{  r.artists }}</div>
+                    <div class="overflow-hidden item-label">{{  r.desc }}</div>
                   </div>
                   <button type="button" class="btn"><i class="bi-heart"></i></button>
                 </div>
@@ -129,12 +178,12 @@
                   <ul class="list-unstyled p-1 overflow-auto" style="max-height: 300px;">
                     {% for r1 in r.nested %}
                     <li><div class="d-flex flex-row rounded-3" style="outline: 1px solid black;">
-                      <button type="button" class="btn" onclick="add('r1.id')"><i class="bi-plus-lg"></i></button>
+                      <button type="button" class="btn" onclick="add('{{r1.id}}')"><i class="bi-plus-lg"></i></button>
                       <div class="d-flex align-items-center"><img src="{{r1.img}}" height=64 width=64></div>
-                      <div class="flex-column p-2 flex-fill">
-                        <div>{{ r1.name }}</div>
-                        <div>{{ r1.artists }}</div>
-                        <div>{{ r1.desc }}</div>
+                      <div class="flex-column p-2 flex-fill overflow-hidden">
+                        <div class="overflow-hidden item-label">{{  r1.name }}</div>
+                        <div class="overflow-hidden item-label">{{  r1.artists }}</div>
+                        <div class="overflow-hidden item-label">{{  r1.desc }}</div>
                       </div>
                       <button type="button" class="btn"><i class="bi-heart" id="heart-icon"></i></button>
                     </div></li>
@@ -150,6 +199,8 @@
     </div>
   </div>
 </div>
+
+
 
 
 {% endblock %}
