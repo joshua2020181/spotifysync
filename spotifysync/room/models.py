@@ -59,6 +59,8 @@ class Room(models.Model):
             if x['id'] == id:
                 self.queue.pop(i)
                 return
+    # dictified SpotifyItem of last played track
+    prevTrack = models.JSONField(default=dict)
 
     # a lit of dictified SpotifyItems
     queue = models.JSONField(default=list)

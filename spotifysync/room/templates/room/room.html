@@ -4,24 +4,28 @@
 {% endblock %}
 
 {% block navbar %}
-<button class="btn" onclick="window.location.href = '/room/{{room.id}}'">Room</button>
-<button class="btn" onclick="window.location.href = '/room/{{room.id}}/add/search'">Add</button>
+<li class="nav-item"><a class="nav-link" href="/room/{{room.id}}">Room</a></li>
+<li class="nav-item"><a class="nav-link" href="/room/{{room.id}}/add/search">Add</a></li>
 {% endblock %}
 
 {% block body %}
 <style>
     div {
         color: white;
-        //outline: 1px solid black;
+        outline: 1px solid black;
     }
     body {
         background-color: black;
     }
 
-    .btn {
+    button:not(.queue-btn) {
         color: white;
         background-color: #1db954;
         border-color: transparent;
+    }
+    
+    .queue-btn {
+        color: white;
     }
 </style>
 <form action="/room/{{room.id}}/" method="post">
@@ -78,16 +82,18 @@
 
                 <ul id="simpleList" class="list-group">
                     {% for r in room.queue %}
-                    <li class="list-group-item" data-id="{{r.id}}"><div class="d-flex flex-row rounded-3" style="outline: 1px solid black;">
-                        <button type="button" class="btn" onclick="add('{{r.id}}')"><i class="bi-chevron-double-up"></i></button>
-                        <div class="d-flex align-items-center"><img src="{{r.img}}" height=64 width=64></div>
-                        <div class="flex-column p-2 flex-fill overflow-hidden">
-                        <div class="overflow-hidden item-label">{{  r.name }}</div>
-                        <div class="overflow-hidden item-label">{{  r.artists }}</div>
-                        <div class="overflow-hidden item-label">{{  r.desc }}</div>
+                    <li class="list-group-item" data-id="{{r.id}}">
+                        <div class="d-flex flex-row rounded-3" style="outline: 1px solid black;">
+                            <button type="button" class="btn queue-btn" onclick="add('{{r.id}}')"><i class="bi-chevron-double-up"></i></button>
+                            <div class="d-flex align-items-center"><img src="{{r.img}}" height=64 width=64></div>
+                            <div class="flex-column p-2 flex-fill overflow-hidden">
+                            <div class="overflow-hidden item-label">{{  r.name }}</div>
+                            <div class="overflow-hidden item-label">{{  r.artists }}</div>
+                            <div class="overflow-hidden item-label">{{  r.desc }}</div>
+                            </div>
+                            <button type="button" class="btn queue-btn"><i class="bi-x-lg"></i></button>
                         </div>
-                        <button type="button" class="btn"><i class="bi-x"></i></button>
-                    </div></li>
+                    </li>
                     {% endfor %}
                 </ul>
             </div>
@@ -131,7 +137,10 @@
             bar.style.width = (parseFloat(bar.style.width) + 0.1) + "%";
         } else {
             clearInterval(intervalId);
-            location.reload();
+            httpGetAsync(function(data){
+                if (data["song-done"]) 
+                    location.reload();
+            }, "song-done={{current_playback.item.id}}")
         }
     }
     function updateProgress() {
@@ -176,6 +185,7 @@
             array[j] = temp;
         }
         queue.sort(array, true);
+        pushQueue()
     }
 
     function deleteQueue() {
@@ -187,7 +197,7 @@
     }
 
     function pushQueue() {
-        httpGetAsync(function(foo){}, "push-queue=" + JSON.stringify(getQueue()));
+        httpGetAsync(function(foo){}, "push-queue=" + encodeURIComponent(JSON.stringify(getQueue())));
     }
 
     function fetchQueue() {

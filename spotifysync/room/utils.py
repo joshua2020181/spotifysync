@@ -37,7 +37,7 @@ class SpotifyItem():
             self.desc = f"{int((result['duration_ms']/1000)/60)}:{int((result['duration_ms']/1000)%60)}"
             try:
                 self.img = result['album']['images'][0]['url']
-            except KeyError:  # queries from .album() doesn't return 'album' in the tracks
+            except (KeyError, IndexError):  # queries from .album() doesn't return 'album' in the tracks
                 pass
             self.id = result['id']
         elif result['type'] == 'album':
@@ -45,14 +45,20 @@ class SpotifyItem():
             self.name = result['name']
             self.artists = ', '.join(x['name'] for x in result['artists'])
             self.desc = result['release_date'].split('-')[0]
-            self.img = result['images'][0]['url']
+            try:
+                self.img = result['images'][0]['url']
+            except (KeyError, IndexError):
+                pass
             self.id = result['id']
         elif result['type'] == 'playlist':
             self.type = result['type']
             self.name = result['name']
             self.artists = result['owner']['display_name']
             self.desc = result['description']
-            self.img = result['images'][0]['url']
+            try:
+                self.img = result['images'][0]['url']
+            except (KeyError, IndexError):
+                pass
             self.id = result['id']
 
     def as_dict(self):
@@ -91,11 +97,14 @@ class SpotifyItem():
             if item.type == 'playlist':
                 res = sp.playlist(item.id)
                 for r in res['tracks']['items']:
-                    item.nested.append(SpotifyItem(r['track']))
+                    if r['track']:
+                        item.nested.append(SpotifyItem(r['track']))
                 lst.append(item)
             elif item.type == 'album':
                 res = sp.album(item.id)
-                img = res['images'][0]['url']
+                img = ''
+                if res['images']:
+                    img = res['images'][0]['url']
                 for r in res['tracks']['items']:
                     i = SpotifyItem(r)
                     i.img = img

@@ -1,26 +1,29 @@
 {% extends 'base.html' %}
 
 {% block header %}
-<div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
-    <p style="height: 32px;">Logo Here</p>
-    {% block navbar %}
-    {% endblock %}
-
-    <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
-        
-    </ul>
+<nav class="navbar navbar-expand-lg navbar-dark">
+  <div class="container-fluid">
+    <span class="nav-item" style="height: 32px;">Logo Here</span>
     
-    <div class="dropdown text-end">
-      <a href="#" class="d-block link-dark text-decoration-none dropdown-toggle mx-2" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+
+    <div class="collapse navbar-collapse" id="navbarNavDropdown">
+      <ul class="navbar-nav">
+        {% block navbar %}
+        {% endblock %}  
+      </ul>
+    </div>
+    <div class="nav-item dropdown text-end">
+      <a href="#" class="text-secondary nav-link d-block text-decoration-none dropdown-toggle mx-2"data-bs-toggle="dropdown">
         <img src="https://github.com/mdo.png" alt="mdo" width="32" height="32" class="rounded-circle">
-        <span>Username</span>
+        <span class="">Username</span>
       </a>
-      <ul class="dropdown-menu text-small" aria-labelledby="dropdownUser1">
+      <ul class="dropdown-menu text-small">
         <li><a class="dropdown-item" href="#">Settings</a></li>
         <li><a class="dropdown-item" href="#">Sign out</a></li>
       </ul>
     </div>
   </div>
+</nav>
 
 {% endblock %}
 

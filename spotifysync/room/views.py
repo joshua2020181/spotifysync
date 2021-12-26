@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect
 from spotipy.exceptions import SpotifyException
 from .models import Room
 from home.models import SpotifyUser
-from time import time
+from time import time, sleep
 from room.utils import SpotifyItem
 # Create your views here.
 
@@ -102,31 +102,47 @@ def roomid(request, roomid):
     participants = SpotifyUser.objects.filter(
         room=room.id)  # note: host is also in participants
 
+    if request.POST and 'song-done' in request.POST:
+        context['current_playback'] = spuser.getSpotify().current_playback()
+        if context['current_playback']:
+            # playing next item in queue
+            if len(room.queue) > 0 and context['current_playback']['item']['id'] == room.queue[0]['id']:
+                room.prevTrack = room.queue.pop(0)
+                room.save()
+                return JsonResponse({'song-done': True})
+            # playing another song
+            elif request.POST['song-done'] != context['current_playback']['item']['id']:
+                return JsonResponse({'song-done': True})
+        return JsonResponse({'song-done': False})
+
     if request.POST and 'push-queue' in request.POST:
         print(f'new queue: {request.POST["push-queue"]}')
-        room.queue = request.POST['push-queue'].replace(
-            '[', '').replace(']', '').split()
+        room.queue = json.loads(request.POST['push-queue'])
         room.save()
+        return JsonResponse({})
 
     if request.POST and 'leave' in request.POST:
         spuser.room = None
         return redirect('/room/')
     if request.POST and 'sync' in request.POST:
-        context['current_playback'] = SpotifyUser.objects.get(
-            user=request.user).getSpotify().current_playback()
+        context['current_playback'] = spuser.getSpotify().current_playback()
         if not context['current_playback']:
             context['errormsg'] = "Please start a playback session first (press play on Spotify)"
             print('no playback sess')
             # handle no playback
-        for p in participants:
-            if p == room.host:  # skips initiator so their context isn't messed up
-                continue
-            puser = SpotifyUser.objects.get(user=p)
-            curr = puser.getSpotify().current_playback()
-            puser.getSpotify().start_playback(device_id=curr['device']['id'],
-                                              uris=[
-                                                  context['current_playback']['item']['uri']],
-                                              position_ms=context['current_playback']['progress_ms'])
+        else:
+            for p in participants:
+                # if p == spuser:  # skips initiator so their context isn't messed up
+                #     continue
+                puser = SpotifyUser.objects.get(user=p)
+                curr = puser.getSpotify().current_playback()
+                puser.getSpotify().shuffle(False)
+                puser.getSpotify().start_playback(device_id=curr['device']['id'],
+                                                  uris=[context['current_playback']['item']['uri']] + ["spotify:track:"+track['id']
+                                                                                                       for track in room.queue],
+                                                  position_ms=context['current_playback']['progress_ms'])
+                if not context['current_playback']['is_playing']:
+                    puser.getSpotify().pause_playback()
     if request.POST and 'pause' in request.POST:
         for p in participants:
             try:
@@ -134,32 +150,59 @@ def roomid(request, roomid):
             except SpotifyException:  # user already paused
                 pass
     if request.POST and 'play' in request.POST:
+        # could hide a sync in here if I store the current room playback status in db
         for p in participants:
             try:
                 p.getSpotify().start_playback()
             except SpotifyException:  # user already playing
                 pass
     if request.POST and 'rewind' in request.POST:
+        context['current_playback'] = spuser.getSpotify().current_playback()
+        if not context['current_playback']:
+            context['errormsg'] = "Please start a playback session first (press play on Spotify)"
+            print('no playback sess')
+            # handle no playback
         for p in participants:
-            try:
-                p.getSpotify().previous_track()
-            except SpotifyException:  # user already playing
-                pass
+            puser = SpotifyUser.objects.get(user=p)
+            curr = puser.getSpotify().current_playback()
+            puser.getSpotify().shuffle(False)
+            if room.prevTrack:
+                puser.getSpotify().start_playback(device_id=curr['device']['id'],
+                                                  uris=["spotify:track:"+track['id']
+                                                        for track in [room.prevTrack] + room.queue],
+                                                  position_ms=0)
+            else:
+                puser.getSpotify().start_playback(device_id=curr['device']['id'],
+                                                  uris=[context['current_playback']['item']['uri']] + ["spotify:track:"+track['id']
+                                                                                                       for track in room.queue],
+                                                  position_ms=0)
+        if room.prevTrack:
+            room.queue.insert(0, SpotifyItem(
+                context['current_playback']['item']).as_dict())
+            room.prevTrack = {}
+            room.save()
     if request.POST and 'skip' in request.POST:
+        context['current_playback'] = spuser.getSpotify().current_playback()
+        if not context['current_playback'] or not context['current_playback']['item']:
+            context['errormsg'] = "Please start a playback session first (press play on Spotify)"
+            print('no playback sess')
+            # handle no playback
+        room.prevTrack = SpotifyItem(
+            context['current_playback']['item']).as_dict()
         for p in participants:
-            try:
-                p.getSpotify().next_track()
-            except SpotifyException:  # user already playing
-                pass
-
-    context['current_playback'] = SpotifyUser.objects.get(
-        user=room.host).getSpotify().current_playback()
-
-    # if host is listening to first song in queue, remove that element from the queue
-    if context['current_playback'].get('item').get('id', False) and len(room.queue) > 0:
-        if context['current_playback']['item']['id'] == room.queue[0].get(id, ''):
+            puser = SpotifyUser.objects.get(user=p)
+            curr = puser.getSpotify().current_playback()
+            puser.getSpotify().shuffle(False)
+            puser.getSpotify().start_playback(device_id=curr['device']['id'],
+                                              uris=["spotify:track:"+track['id']
+                                                    for track in room.queue],
+                                              position_ms=0)
+        if room.queue:
             room.queue.pop(0)
             room.save()
+        print(f'{room.prevTrack=}')
+
+    context['current_playback'] = spuser.getSpotify().current_playback()
     context['queue'] = json.dumps(room.queue)
 
     return render(request, 'room/room.html', context=context)
