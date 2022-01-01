@@ -13,10 +13,13 @@ simple website to sync Spotify playback
 - online list (user pings server every x seconds)
 - re ping server every x seconds to get current song state
 - fix linking page ui
+- friends/inviting (email?)
+- 
 - queueing:
 - [ ] my playlists
 - [ ] my favorite songs
 - [ ] recently played
+- [ ] "successfully added song" banner
 
 # nice to have:
 - waiting room
@@ -24,14 +27,17 @@ simple website to sync Spotify playback
 - chat/video call
 - marquees to see long song titles
 - don't have to login, just use spotify oauth
+- "protected" mode (only host/admin can clear, add)
 
 # long in the future:
 - discord bot integration
+- speed up search by 
 
 # bugs
 - skipping/finishing song doesn't always update website
 - syncing still has a +- 1 second delay
 - shuffling doesn't work for 50+ songs i think
+- repeats last song is queue is empty
 - 
 
 /account/:
