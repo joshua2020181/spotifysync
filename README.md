@@ -1,11 +1,11 @@
 # spotifysync
-simple website to sync Spotify playback
+Website to sync Spotify playback between multiple Spotify premium users (API limitation). Collaborative queue between listeners in same "room". Future discord bot integration
 
 # completed features:
 - syncing with initiator (person who clicked the button)
 - progress bar (with song updating after every song finishes)
 - queue builder page (search)
-- 
+- collaborative queue (tested with 2 users)
 
 # features to add (required-ish):
 - pick device to start playback
@@ -35,19 +35,8 @@ simple website to sync Spotify playback
 
 # bugs
 - skipping/finishing song doesn't always update website
-- syncing still has a +- 1 second delay
+- syncing still has a +- 1 second delay sometimes
 - shuffling doesn't work for 50+ songs i think
-- repeats last song is queue is empty
-- 
-
-/account/:
-- create
-- signin
-- link
-
-/room/:
-- 
-- roomid
-- waitingroom/roomid
+- repeats last song if queue is empty
 
 
